@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using GitHub;
 using Microsoft.AspNetCore.Mvc;
 
 namespace scientist_demo.api.Controllers
@@ -10,6 +12,17 @@ namespace scientist_demo.api.Controllers
     {
         [HttpGet]
         public IEnumerable<DataWithSomeSensitiveStuff> Get()
+        {
+            return Scientist.Science<IEnumerable<DataWithSomeSensitiveStuff>>("sensitive-stuff", experiment =>
+            {
+                experiment.Compare((original, _new) => Serialize(original) == Serialize(_new));
+
+                experiment.Use(OriginalGetStuff);
+                experiment.Try(NewGetStuff);
+            });
+        }
+
+        private static IEnumerable<DataWithSomeSensitiveStuff> OriginalGetStuff()
         {
             return new[]
             {
@@ -27,6 +40,34 @@ namespace scientist_demo.api.Controllers
                     }
                 }
             };
+        }
+
+        private static IEnumerable<DataWithSomeSensitiveStuff> NewGetStuff()
+        {
+            return new[]
+            {
+                new DataWithSomeSensitiveStuff
+                {
+                    NumberOfThings = 8,
+                    Customers = new List<Customer>
+                    {
+                        new()
+                        {
+                            Name = "Tim",
+                            Age = 12,
+                            Email = "3@4.com"
+                        }
+                    }
+                }
+            };
+        }
+
+        private static string Serialize<T>(T obj)
+        {
+            return JsonSerializer.Serialize(obj, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
         }
     }
 
