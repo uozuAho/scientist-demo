@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using GitHub;
+using JsonDiffPatchDotNet;
 
 namespace scientist_demo.api
 {
@@ -12,14 +13,14 @@ namespace scientist_demo.api
             Log($"Publishing results for experiment '{result.ExperimentName}'");
             Log($"Result: {(result.Matched ? "MATCH" : "MISMATCH")}");
             Log($"Control duration: {result.Control.Duration}");
-            Log($"Control value:");
-            Log($"{Serialize(result.Control.Value)}");
+
             foreach (var observation in result.Candidates)
             {
+                var jdp = new JsonDiffPatch();
                 Log($"Candidate name: {observation.Name}");
                 Log($"Candidate duration: {observation.Duration}");
-                Log($"Candidate value:");
-                Log($"{Serialize(observation.Value)}");
+                Log($"Candidate diff:");
+                Log(jdp.Diff(Serialize(result.Control.Value), Serialize(observation.Value)));
             }
 
             return Task.FromResult(0);
