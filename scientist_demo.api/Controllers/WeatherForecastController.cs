@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using GitHub;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -25,14 +26,35 @@ namespace scientist_demo.api.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            return Scientist.Science<IEnumerable<WeatherForecast>>("weather-report", experiment =>
+            {
+                experiment.Use(OriginalForecast);
+                experiment.Try(NewForecast);
+            });
+        }
+
+        private static IEnumerable<WeatherForecast> OriginalForecast()
+        {
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                {
+                    Date = DateTime.Now.AddDays(index),
+                    TemperatureC = rng.Next(-20, 55),
+                    Summary = Summaries[rng.Next(Summaries.Length)]
+                })
+                .ToArray();
+        }
+
+        private static IEnumerable<WeatherForecast> NewForecast()
+        {
+            var rng = new Random();
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                {
+                    Date = DateTime.Now.AddDays(index),
+                    TemperatureC = rng.Next(-20, 55),
+                    Summary = Summaries[rng.Next(Summaries.Length)]
+                })
+                .ToArray();
         }
     }
 }
