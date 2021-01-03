@@ -16,6 +16,7 @@ namespace scientist_demo.api.Controllers
             return Scientist.Science<IEnumerable<DataWithSomeSensitiveStuff>>("sensitive-stuff", experiment =>
             {
                 experiment.Compare((original, _new) => Serialize(original) == Serialize(_new));
+                experiment.AddContext("request id", Guid.NewGuid());
 
                 experiment.Use(OriginalGetStuff);
                 experiment.Try(NewGetStuff);
@@ -74,6 +75,7 @@ namespace scientist_demo.api.Controllers
     public class DataWithSomeSensitiveStuff
     {
         public Guid Version { get; set; } = Guid.NewGuid();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public int NumberOfThings { get; set; }
         public List<Customer> Customers { get; set; }
     }

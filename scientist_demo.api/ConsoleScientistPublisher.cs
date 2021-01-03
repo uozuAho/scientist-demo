@@ -11,6 +11,11 @@ namespace scientist_demo.api
         public Task Publish<T, TClean>(Result<T, TClean> result)
         {
             Log($"Publishing results for experiment '{result.ExperimentName}'");
+            Log("Context:");
+            foreach (var (key, value) in result.Contexts)
+            {
+                Log($"{key}: {value}");
+            }
             Log($"Result: {(result.Matched ? "MATCH" : "MISMATCH")}");
             Log($"Control duration: {result.Control.Duration}");
 
