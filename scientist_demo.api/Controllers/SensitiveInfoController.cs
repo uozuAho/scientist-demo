@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using GitHub;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,33 @@ namespace scientist_demo.api.Controllers
         {
             return Scientist.Science<IEnumerable<DataWithSomeSensitiveStuff>>("sensitive-stuff", experiment =>
             {
-                experiment.Compare((original, _new) => Serialize(original) == Serialize(_new));
+                experiment.Compare(CompareOriginalAndNewResults);
                 experiment.AddContext("request id", Guid.NewGuid());
 
                 experiment.Use(OriginalGetStuff);
                 experiment.Try(NewGetStuff);
             });
+        }
+
+        private static bool CompareOriginalAndNewResults(
+            IEnumerable<DataWithSomeSensitiveStuff> original,
+            IEnumerable<DataWithSomeSensitiveStuff> _new)
+        {
+            var cleanedOriginal = original.Select(IgnoreFields);
+            var cleanedNew = _new.Select(IgnoreFields);
+
+            return Serialize(cleanedOriginal) == Serialize(cleanedNew);
+        }
+
+        private static DataWithSomeSensitiveStuff IgnoreFields(DataWithSomeSensitiveStuff original)
+        {
+            return new()
+            {
+                Timestamp = DateTime.MaxValue,
+                Version = Guid.Empty,
+                Customers = original.Customers,
+                NumberOfThings = original.NumberOfThings
+            };
         }
 
         private static IEnumerable<DataWithSomeSensitiveStuff> OriginalGetStuff()
