@@ -25,7 +25,7 @@ namespace scientist_demo.api
                 Log($"Candidate name: {observation.Name}");
                 Log($"Candidate duration: {observation.Duration}");
                 Log($"Candidate diff:");
-                Log(jdp.Diff(Serialize(result.Control.Value), Serialize(observation.Value)));
+                Log(jdp.Diff(Serialize(result.Control.CleanedValue), Serialize(observation.CleanedValue)));
             }
 
             return Task.FromResult(0);

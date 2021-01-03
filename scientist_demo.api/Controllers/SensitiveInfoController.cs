@@ -14,14 +14,19 @@ namespace scientist_demo.api.Controllers
         [HttpGet]
         public IEnumerable<DataWithSomeSensitiveStuff> Get()
         {
-            return Scientist.Science<IEnumerable<DataWithSomeSensitiveStuff>>("sensitive-stuff", experiment =>
-            {
-                experiment.Compare(CompareOriginalAndNewResults);
-                experiment.AddContext("request id", Guid.NewGuid());
+            return Scientist.Science<
+                IEnumerable<DataWithSomeSensitiveStuff>,
+                IEnumerable<DataWithSomeSensitiveStuff>>(
+                "sensitive-stuff", experiment =>
+                {
+                    experiment.Compare(CompareOriginalAndNewResults);
+                    experiment.AddContext("request id", Guid.NewGuid());
 
-                experiment.Use(OriginalGetStuff);
-                experiment.Try(NewGetStuff);
-            });
+                    experiment.Use(OriginalGetStuff);
+                    experiment.Try(NewGetStuff);
+
+                    experiment.Clean(dirty => dirty.Select(SanitiseForReporting));
+                });
         }
 
         private static bool CompareOriginalAndNewResults(
@@ -41,6 +46,22 @@ namespace scientist_demo.api.Controllers
                 Timestamp = DateTime.MaxValue,
                 Version = Guid.Empty,
                 Customers = original.Customers,
+                NumberOfThings = original.NumberOfThings
+            };
+        }
+
+        private static DataWithSomeSensitiveStuff SanitiseForReporting(DataWithSomeSensitiveStuff original)
+        {
+            return new()
+            {
+                Timestamp = DateTime.MaxValue,
+                Version = Guid.Empty,
+                Customers = original.Customers.Select(c => new Customer
+                {
+                    Age = c.Age,
+                    Email = "***removed***",
+                    Name = "***removed***"
+                }).ToList(),
                 NumberOfThings = original.NumberOfThings
             };
         }
