@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using GitHub;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -28,6 +29,8 @@ namespace scientist_demo.api.Controllers
         {
             return Scientist.Science<IEnumerable<WeatherForecast>>("weather-report", experiment =>
             {
+                experiment.Compare((original, _new) => Serialize(original) == Serialize(_new));
+
                 experiment.Use(OriginalForecast);
                 experiment.Try(NewForecast);
             });
@@ -55,6 +58,14 @@ namespace scientist_demo.api.Controllers
                     Summary = Summaries[rng.Next(Summaries.Length)]
                 })
                 .ToArray();
+        }
+
+        private static string Serialize<T>(T obj)
+        {
+            return JsonSerializer.Serialize(obj, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
         }
     }
 }
