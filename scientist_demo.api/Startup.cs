@@ -26,7 +26,7 @@ namespace scientist_demo.api
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "scientist_demo.api", Version = "v1" });
             });
 
-            Scientist.ResultPublisher = new ConsoleScientistPublisher();
+            Scientist.ResultPublisher = new FireAndForgetResultPublisher(new ConsoleScientistPublisher());
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
